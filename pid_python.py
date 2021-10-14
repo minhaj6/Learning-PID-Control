@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 import turtle
 import time
 
-# Global Params
+# GLOBAL PARAMETERS
 TIMER = 0
-TIME_STEP = 0.005
-SETPOINT = 10
-SIM_TIME = 1000        # in seconds
+TIME_STEP = 0.001
+SETPOINT = 90
+SIM_TIME = 500
 INITIAL_X = 0
 INITIAL_Y = -100
 MASS = 1 #kg
@@ -17,9 +17,14 @@ V_i = 0     # Initial velocity
 Y_i = 0     # Initial height of the rocket
 
 # PID GAINS -------------
-KP = 1.0
-KD = 1.0
-KI = 1.0
+Ku = 0.6  # ultimate gain found by testing KP max
+Tu = 0.018 # found from matplotlib peaks
+KP = 0.6 * Ku
+KI = (1.2*Ku)/Tu 
+KD = (3*Ku*Tu)/40
+
+print("Gains: ", KP, KI, KD)
+# ziegler -nichols method is for tuning PID gains
 
 class Simulation():
     def __init__(self) -> None:
@@ -34,6 +39,8 @@ class Simulation():
         self.marker.color('red')
         self.sim = True
         self.timer = 0
+        self.poses = np.array([])   # for storing positions
+        self.times = np.array([])   # for storing time
 
     def cycle(self):
         while(self.sim):
@@ -53,6 +60,14 @@ class Simulation():
             elif self.Insight.get_y() < -800:
                 print("NEGATIVE OUT OF BOUND")
                 self.sim = False
+            
+            self.poses = np.append(self.poses, self.Insight.get_y())
+            self.times = np.append(self.times, self.timer)
+        graph(self.times, self.poses)
+
+def graph(x, y):
+    plt.plot(x,y)
+    plt.show()
 
 class Rocket():
     def __init__(self) -> None:
